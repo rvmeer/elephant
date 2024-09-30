@@ -2,7 +2,6 @@ from openai import AzureOpenAI
 import os
 import time
 import json
-import random
 
 # Create the API client
 client = AzureOpenAI(

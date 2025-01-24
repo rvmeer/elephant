@@ -4,11 +4,18 @@ How to put an elephant in the fridge?
 
 ## Introduction
 
-This Python library allows you to easily specify functions that can be called from the function calling tool of the Azure Open AI assistant.
+This Python library allows you to easily specify functions that can be called from the function calling tool of the Azure Open AI Assistant.
 
 1. Define your local function
 2. Decorate then with a clear description of what the function does
 3. The helper will pass the applicable tools to the assistant and helps in executing the assistant thread.
+
+## Install
+
+Put the afch folder in your Python project. Now you can import the AssistantFunctionCallingHelper from afch and
+use the decorator.
+
+Current afch is not available as pip package.
 
 ## Getting started
 

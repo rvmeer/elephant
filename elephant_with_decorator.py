@@ -1,32 +1,10 @@
-# Azure Open AI Function Caller Helper.
-
-How to put an elephant in the fridge?
-
-## Introduction
-
-This Python library allows you to easily specify functions that can be called from the function calling tool of the Azure Open AI assistant.
-
-1. Define your local function
-2. Decorate then with a clear description of what the function does
-3. The helper will pass the applicable tools to the assistant and helps in executing the assistant thread.
-
-## Getting started
-
-1. Install Python 3.12
-2. `pip install openai`
-
-Create an instance of the AssistantFunctionCallingHelper
-
-```
+from openai import AzureOpenAI
+import os
 from afch import AssistantFunctionCallingHelper
 
 afc = AssistantFunctionCallingHelper()
-```
 
-And use the decorator to define your functions. A function name and description is enough. The
-AssistantFunctionCallingHelper will make sure the Assistant will get all information needed to call
-the function if applicable.
-```
+####
 current_animal = None
 
 @afc.function(name='open_fridge', description='Opens the fridge so an animal can be put inside')
@@ -56,14 +34,42 @@ def remove_animal_from_fridge():
     
     print(f"Removing {current_animal} from the fridge")
     current_animal = None
-```
 
-Now use the Open AI Assistant API to define an Assistant and create a thread with a message. Make sure
-you store your Open AI API key in the `AZURE_OPENAI_API_KEY` environment variable, as well as your AZURE_OPENAI_ENDPOINT.
+####
 
-When defining the Assistant, use the `tools` provided by the AssistantFunctionCallingHelper.
 
-```
+
+instructions1 = """
+I want you to perform the following steps: 
+
+1. Open the fridge
+2. Check if an animal is present in the fridge, if so remove it
+3. Put an elephant in the fridge
+4. Close the fridge
+5. Open the fridge
+6. Check if an animal is present in the fridge, if so remove it
+7. Put a giraffe in the fridge
+8. Close the fridge
+"""
+
+instructions2 = """
+I want you to perform the following steps:
+1. Make sure the fridge is empty
+2. Put an elephant in the fridge
+3. Close the fridge
+4. Make sure the fridge is empty
+5. Put a giraffe in the fridge
+6. Close the fridge
+"""
+
+instructions3="""
+I want you to perform the following steps:
+1. First put an elephant in the fridge
+2. Then put a giraffe in the fridge
+
+Always make sure the fridge is empty before putting an animal in it.
+"""
+
 # Create the API client
 client = AzureOpenAI(
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
@@ -75,7 +81,7 @@ client = AzureOpenAI(
 assistant = client.beta.assistants.create(
     name="Olifant", 
     instructions="You are machine that puts animals in a fridge. Only one animal can stay in the fridge at the same time. Close the fridge when a new animal is put in it.",
-    model="gpt-4o",
+    model="gpt-4o2",
     tools=afc.tools
 )
 
@@ -84,40 +90,9 @@ thread = client.beta.threads.create()
 client.beta.threads.messages.create(
     thread_id=thread.id,
     role="user",
-    content=instructions
+    content=instructions3
 )
-```
-
-Now run the assistent with your instructions, your defined functions will be called locally!
-
-
-```
-instructions="""
-I want you to perform the following steps:
-1. First put an elephant in the fridge
-2. Then put a giraffe in the fridge
-
-Always make sure the fridge is empty before putting an animal in it.
-"""
 
 # Run the thread on the assistant
 run = afc.create_thread_run(client, thread, assistant)
 run.execute()
-```
-
-The result will be:
-
-```
-Opening the fridge
-Checking if an animal is present in the fridge
-Putting elephant in the fridge
-Closing the fridge
-Opening the fridge
-Removing elephant from the fridge
-Putting giraffe in the fridge
-Closing the fridge
-```
-
-
-
-
